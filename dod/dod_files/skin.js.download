@@ -1,0 +1,81 @@
+﻿(function (window) {
+
+    $(document).ready(function () {
+        var $header = $('#header-main'),
+            $html = $('html'),
+            $body = $('body'),
+            lastScrollTop = 0,
+            delta = { up: 200, down: 2 },
+            throttle_timer,
+            throttle_time,
+            throttle_time_threshold = 200,
+            calculateHeaderClass = function () {
+                var y = window.pageYOffset;
+                var time = Date.now();
+                if (time - throttle_time_threshold < throttle_time) {
+                    throttle_timer = setTimeout(function () { //always call it at least once at the end of scroll
+                        calculateHeaderClass();
+                    }, throttle_time_threshold);
+                    return;
+                };
+
+                if (y - delta.down > lastScrollTop) { //keep track of tucked
+                    $header.addClass('tucked');
+                    lastScrollTop = y;
+                } else if (y + delta.up < lastScrollTop || y < delta.down) {
+                    $header.removeClass('tucked');
+                    lastScrollTop = y;
+                }
+
+                if (y < delta.down) { //keep track of top
+                    $header.addClass('top');
+                    top = true;
+                } else if (y > delta.down) {
+                    $header.removeClass('top');
+                    top = false;
+                }
+
+                if (y - delta.down > lastScrollTop || y + delta.up < lastScrollTop) //keep track only outside of delta range
+                    lastScrollTop = y;
+
+                throttle_time = Date.now();
+            };
+        if (!$header) return;
+    
+        window.onscroll = function () {
+            calculateHeaderClass();
+        };
+
+        $header.css('visibility', 'visible');
+        calculateHeaderClass();
+
+        var escToCloseNav = function (e) {
+            if (e.keyCode == 27) { $('#nav-burger').click(); }
+        }
+
+        $('#nav-burger').click(function() {
+            closeMobileNav();
+        });
+
+        $('#nav-burger.internal').on("click", function() {
+            closeMobileNav();
+        });
+
+        function closeMobileNav() {
+            $html.toggleClass('nav-open');
+            $('#mobile-overlay').fadeToggle(200);
+        }
+
+        replaceCalendarButtons();
+
+    }); //ready
+
+})(window);
+
+function replaceCalendarButtons() {
+    console.log('replacing cal button');
+    $('.RadCalendar_Default .rcTitlebar .rcFastPrev').html('<i class="cal-chevron cal-left"></i><i class="cal-chevron cal-left second"></i>');
+    $('.RadCalendar_Default .rcTitlebar .rcPrev').html('<i class="cal-chevron cal-left"></i>');
+    $('.RadCalendar_Default .rcTitlebar .rcNext').html('<i class="cal-chevron cal-right"></i>');
+    $('.RadCalendar_Default .rcTitlebar .rcFastNext').html('<i class="cal-chevron cal-right"></i><i class="cal-chevron cal-right second"></i>');
+}
